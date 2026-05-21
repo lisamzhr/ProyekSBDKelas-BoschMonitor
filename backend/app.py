@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from db import insert_measurement, buckets_col, motors_col
 from datetime import datetime, timezone
+from analytics import load_data_to_dataframe, temp_trend, detect_anomalies_zscore, fft_spectrum
 
 app = Flask(__name__)
 
@@ -8,7 +9,6 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     return jsonify({"status": "Bosch Motor Monitor API is running"})
-
 
 @app.route("/telemetry", methods=["POST"])
 def receive_telemetry():
@@ -30,7 +30,6 @@ def receive_telemetry():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/health/<motor_id>", methods=["GET"])
 def get_health(motor_id):
@@ -59,12 +58,11 @@ def get_health(motor_id):
 
     return jsonify({
         "motor_id": motor_id,
-        "bucket_id": bucket["_id"],
+        "bucket_id": str(bucket["_id"]),
         "stats": stats,
         "health_score": health_score,
         "thresholds": thresholds
     })
-
 
 @app.route("/buckets/<motor_id>", methods=["GET"])
 def get_buckets(motor_id):
@@ -82,6 +80,43 @@ def get_buckets(motor_id):
 
     return jsonify(result)
 
+@app.route("/analytics/<motor_id>", methods=["GET"])
+def get_motor_analytics(motor_id):
+    bucket = buckets_col.find_one(
+        {"motor_id": motor_id},
+        sort=[("bucket_start",-1)]
+    )
+    if not bucket:
+        return jsonify({"message": "No data found"}), 404
+
+    raw_measurements =bucket.get("measurements", [])
+
+    df = load_data_to_dataframe(raw_measurements)
+    trend_data =temp_trend(df)
+    anomaly_data =detect_anomalies_zscore(df)
+    fft_data =fft_spectrum(df)
+
+    predictive_health =100
+    anomalies_total = len(anomaly_data)
+    predictive_health -= (anomalies_total*5) #utk 1 anomali kurang 5 poin
+
+    if fft_data["detected_fault"]!= "Normal":
+        predictive_health -=20
+    predictive_health = max(0, predictive_health)
+
+    response_dict= {
+        "identity": {
+            "motor_id": motor_id,
+            "bucket_id": str(bucket["_id"])
+        },
+        "analytics":{
+            "trend": trend_data,
+            "anomalies": anomaly_data,
+            "fft": fft_data,
+            "predictive_health": predictive_health
+        }
+    }
+    return jsonify(response_dict), 200
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
