@@ -24,13 +24,21 @@ void setup() {
   Serial.begin(115200);
 
   // connect WiFi
+  const unsigned long wifiConnectTimeoutMs = 15000;
+  unsigned long wifiConnectStart = millis();
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED &&
+         millis() - wifiConnectStart < wifiConnectTimeoutMs) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi connected!");
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected!");
+  } else {
+    Serial.println("\nWiFi connection timed out, continuing without network.");
+  }
 
   // init MPU6050
   if (!mpu.begin()) {
