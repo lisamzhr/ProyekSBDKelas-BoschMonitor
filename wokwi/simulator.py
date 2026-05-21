@@ -1,10 +1,11 @@
+import os
 import requests
 import time
 import random
 import math
 
 # Konfigurasi
-SERVER_URL = "https://proyeksbdkelas-boschmonitor.onrender.com/telemetry" # ganti pakai variabel di .env
+SERVER_URL = os.getenv("SERVER_URL", "https://proyeksbdkelas-boschmonitor.onrender.com/telemetry")
 MOTOR_ID = "MOTOR_01"
 DELAY_SECONDS = 1  # Kirim tiap 1 detik sesuai delay(1000) di sketch.ino
 
