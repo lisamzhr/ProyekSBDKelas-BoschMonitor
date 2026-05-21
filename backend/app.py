@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from db import insert_measurement, buckets_col, motors_col
 from datetime import datetime, timezone
-from analytics import load_data_to_dataframe, temp_trend, detect_anomalies_zscore, fft_spectrum
+from analytics import load_data_to_df, temp_trend, detect_anomalies_zscore, fft_spectrum
 
 app = Flask(__name__)
 
@@ -45,9 +45,9 @@ def get_health(motor_id):
     motor = motors_col.find_one({"motor_id": motor_id})
     thresholds = motor["thresholds"] if motor else {}
 
-    stats = bucket["stats"]
-    vib_rms = stats.get("vib_rms", 0)
-    temp_avg = stats.get("temp_avg", 0)
+    bucket_stats = bucket["stats"]
+    vib_rms = bucket_stats.get("vib_rms", 0)
+    temp_avg = bucket_stats.get("temp_avg", 0)
     vib_max = thresholds.get("vib_max", 2.0)
     temp_max = thresholds.get("temp_max", 70.0)
 
@@ -59,7 +59,7 @@ def get_health(motor_id):
     return jsonify({
         "motor_id": motor_id,
         "bucket_id": str(bucket["_id"]),
-        "stats": stats,
+        "stats": bucket_stats,
         "health_score": health_score,
         "thresholds": thresholds
     })
@@ -91,7 +91,7 @@ def get_motor_analytics(motor_id):
 
     raw_measurements =bucket.get("measurements", [])
 
-    df = load_data_to_dataframe(raw_measurements)
+    df = load_data_to_df(raw_measurements)
     trend_data =temp_trend(df)
     anomaly_data =detect_anomalies_zscore(df)
     fft_data =fft_spectrum(df)
