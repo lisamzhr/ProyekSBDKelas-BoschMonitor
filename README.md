@@ -79,50 +79,74 @@ graph TD
     C -- "FFT & Z-Score Results" --> B
     B -- "Predictive Health Response" --> E
 ```
-## How to run
+
+## Project Structure
+
+```text
+ProyekSBDKelas-BoschMonitor/
+├── backend/
+│   ├── analytics.py       # Pandas/SciPy pipeline untuk FFT & Z-Score
+│   ├── app.py             # Flask API backend route & endpoint
+│   ├── db.py              # Koneksi dan logika Bucket Pattern MongoDB
+│   └── requirements.txt   # Dependencies Python backend
+├── docs/
+│   ├── Case_Study_Summary.md   # Riset Use Case Perusahaan Bosch
+│   └── Data_Model.md           # Desain Skema Database Bucket Pattern
+│   └── PPTProject.pdf          # File PPT
+├── frontend/
+│   ├── dashboard.py       # Streamlit UI untuk visualisasi data
+│   └── requirements.txt   # Dependencies Python frontend
+├── simulator/
+│   ├── simulator.py       # Script stress-test generator data telemetri (Python)
+│   ├── sketch.ino         # (Opsional) Kode C++ Wokwi ESP32
+│   ├── diagram.json       # (Opsional) Konfigurasi sirkuit Wokwi
+│   └── wokwi.toml         # (Opsional) Konfigurasi workspace Wokwi
+├── Procfile               # Konfigurasi deployment server ke Render
+└── README.md              # Dokumentasi proyek utama
+```
+
+## Academic Integrity & AI Disclosure
+- **AI Assistance Disclosure:** Proyek ini dibantu oleh AI Assistant untuk men-generate *boilerplate* kode (setup dasar Flask, inisialisasi layout Streamlit, dokumentasi, dan formatting Markdown), kode logika inti (Routing, Bucket Validation, Data Simulation), serta kode script untuk simulasi. Semua kode telah dimodifikasi dan diverifikasi manual oleh tim.
+
+## How to Set Up and Run the App
 
 ### Prerequisites
-- **Python 3.8** or latest
-- **MongoDB** 
+- **Python 3.8+**
+- **MongoDB Atlas**
 
 ### Langkah-langkah Instalasi & Eksekusi
 
-**1. Cloning repository**
+Sistem ini didesain sebagai *Distributed Service*. Anda perlu membuka **3 Terminal berbeda** (jika dijalankan secara local) untuk mensimulasikan environtment pabrik yang sesungguhnya.
 
-**2. Instalasi Dependensi**
-Masuk ke folder backend dan instal library Python yang dibutuhkan oleh sistem menggunakan `pip`:
-
+**1. Setup & Jalankan API Backend (Terminal 1)**
+Masuk ke folder backend dan instal library:
 ```bash
-cd bosch-motor-monitor/backend
+cd backend
 pip install -r requirements.txt
 ```
-
-**3. Konfigurasi Environment**
-Buat sebuah file baru bernama `.env` didalam folder `backend/`. Buka file tersebut dan masukkan URI koneksi MongoDB:
-
+Buat sebuah file baru bernama `.env` di dalam folder `backend/` dan masukkan URI dari MongoDB Anda:
 ```env
+# Sesuaikan uri dengan cluster MongoDB Atlas masing-masing
 MONGO_URI="mongodb://localhost:27017/"
-#Contoh
 ```
-
-**4. Jalankan API Backend (Flask)**
-Nyalakan server:
-
+Jalankan server Flask:
 ```bash
 python app.py
 ```
 
-**5. Jalankan IoT Simulator**
-Buka window terminal baru pada directory `backend/`, lalu jalankan generator data sensor:
-
+**2. Jalankan Frontend Dashboard (Terminal 2)**
+Buka window terminal baru, masuk ke directory `frontend/`, instal dependensi, lalu jalankan aplikasinya:
 ```bash
-python simulator.py
-```
-
-**6. Jalankan Frontend Dashboard (Streamlit)**
-Buka window terminal baru pada directory `frontend/` :
-
-```bash
-cd ../frontend
+cd frontend
+pip install -r requirements.txt
 streamlit run dashboard.py
 ```
+
+**3. Jalankan IoT Simulator (Terminal 3)**
+Untuk memompa data sensor ke dalam database agar *Live Monitor* dan grafik bergerak, buka terminal baru di directory `simulator/`:
+```bash
+cd simulator
+pip install requests
+python simulator.py
+```
+*(Biarkan simulator berjalan untuk melihat transisi dari Fase Normal → Warning → Fault di Streamlit UI).*
