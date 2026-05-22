@@ -156,3 +156,10 @@ pip install requests
 python simulator.py
 ```
 *(Biarkan simulator berjalan untuk melihat transisi dari Fase Normal → Warning → Fault di Streamlit UI).*
+
+## Deployment
+***backend domain***
+https://proyeksbdkelas-boschmonitor.onrender.com/
+
+***frontend domain***
+http://proyeksbdkelas-boschmonitorgit-btjhejmc2oxhujuzszbydl.streamlit.app/
