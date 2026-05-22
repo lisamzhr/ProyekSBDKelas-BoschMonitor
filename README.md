@@ -37,6 +37,9 @@ Bagian ini bertugas menarik array dan mengubahnya menjadi **Pandas DataFrame**. 
 - **Fast Fourier Transform (FFT):** Menggunakan library *SciPy* untuk menganalisa spektrum frekuensi getaran dari time-domain ke frequency-domain. Dari hasil FFT ini, algoritma dapat mendeteksi komponen apa yang rusak
 - Menghitung **Predictive Health Score** akhir (0-100%) sebagai kesimpulan kondisi mesin
 
+**5. benchmark_neondb.py**
+File benchmark_neondb.py merupakan script pengujian otomatis untuk mengevaluasi dan membandingkan latency antara Local Flask API (NoSQL) dengan database Cloud PostgreSQL (NeonDB). Script ini bekerja dengan menghasilkan 300 data sensor dummy yang mensimulasikan metric mesin seperti acceleration, gyroscope, temprature, dan humidity, lalu mengukur waktu execution secara. Script akan menguji dua operasi inti IoT: waktu yang dibutuhkan untuk menulis data satu per satu dan waktu yang dibutuhkan untuk menarik kembali seluruh 300 rekaman data tersebut dari kedua database.
+
 **Key Features:**
 - **Schema Flexibility:** Mampu menerima struktur payload yang dinamis dari berbagai jenis sensor tanpa memerlukan downtime untuk `ALTER TABLE`.
 - **High-Throughput Ingestion:**  Menggunakan operation MongoDB `$push` dan `$inc` untuk write yang cepat.
@@ -107,6 +110,9 @@ ProyekSBDKelas-BoschMonitor/
 
 ## Academic Integrity & AI Disclosure
 - **AI Assistance Disclosure:** Proyek ini dibantu oleh AI Assistant untuk men-generate *boilerplate* kode (setup dasar Flask, inisialisasi layout Streamlit, dokumentasi, dan formatting Markdown), kode logika inti (Routing, Bucket Validation, Data Simulation), serta kode script untuk simulasi. Semua kode telah dimodifikasi dan diverifikasi manual oleh tim.
+
+## Database comparison SQL vs NoSQL
+Berdasarkan hasil benchmark yang menguji 300 data sensor, terdapat perbandingan performa (trade-off) yang sangat jelas antara pendekatan NoSQL (Local API Bucket Pattern) dan SQL (Cloud NeonDB). Pada operasi penulisan data (Write Latency), database SQL mengungguli NoSQL. Hal ini menunjukkan bahwa metode insert database secara langsung berbasis baris (row-based) sangat efisien untuk pencatatan data yang berurutan. Namun sebaliknya, pada operasi pengambilan data (Read Latency), pendekatan NoSQL menggunakan Bucket Pattern terbukti jauh lebih cepat. Ini membuktikan bahwa pengelompokan data ke dalam bucket sangat optimal untuk menarik data telemetri dalam jumlah besar sekaligus, menjadikannya arsitektur yang ideal untuk memuat data historis secara cepat pada dashboard pemantauan kami.
 
 ## How to Set Up and Run the App
 
